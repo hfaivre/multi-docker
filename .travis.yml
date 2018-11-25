@@ -1,19 +1,16 @@
 sudo: required
 services: 
   - docker
-
 before_install:
   - docker build -t homerefaivre/react-test -f ./client/Dockerfile.dev ./client
-
-scripts:
+script:
   - docker run homerefaivre/react-test npm test -- --coverage
-
 after_success:
+
   - docker build -t homerefaivre/multi-client ./client 
   - docker build -t homerefaivre/multi-nginx ./nginx
   - docker build -t homerefaivre/multi-server ./server
   - docker build -t homerefaivre/multi-worker ./worker
-
 # Log in to the docker CLI
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
   - docker push homerefaivre/multi-client
