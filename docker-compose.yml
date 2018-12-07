@@ -2,8 +2,14 @@ version : '3'
 services:
   postgres:
     image: 'postgres:latest'
+    labels:
+      com.datadoghq.ad.check_names: '["postgresql"]'
+      com.datadoghq.ad.logs: '[{"source": "postgresql", "service": "postgresql"}]'
   redis:
     image: 'redis:latest'
+    labels:
+      com.datadoghq.ad.check_names: '["redis"]'
+      com.datadoghq.ad.logs: '[{"source": "redis", "service": "redis"}]'
   api:
     build:
       dockerfile: Dockerfile.dev
@@ -19,6 +25,8 @@ services:
       - PGDATABASE=postgres
       - PGPASSWORD=postgres_password
       - PGPORT=5432
+    labels:
+      com.datadoghq.ad.logs: '[{"service": "api"}]'
   client:
     build:
       dockerfile: Dockerfile.dev
@@ -36,6 +44,8 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+    labels:
+      com.datadoghq.ad.logs: '[{"service": "worker"}]'
   nginx:
     build:
       dockerfile: Dockerfile.dev
@@ -43,4 +53,22 @@ services:
     restart: always
     ports:
       - '3050:80'
+    labels:
+      com.datadoghq.ad.check_names: '["nginx"]'
+      com.datadoghq.ad.init_configs: '[{}]'
+      com.datadoghq.ad.instances: '[{"nginx_status_url": "http://%%host%%:%%port%%/nginx_status"}]'
+      com.datadoghq.ad.logs: '[{"source": "nginx", "service": "webapp"}]'
+  datadog:
+    container_name: ddagent
+    image: datadog/agent:latest
+    environment:
+      - DD_API_KEY=7a949afa3aecc29828c96b90e0fa440f
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_AC_EXCLUDE="name:datadog"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /opt/datadog-agent/run:/opt/datadog-agent/run:rw
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
 
