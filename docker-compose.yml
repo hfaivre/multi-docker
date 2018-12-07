@@ -58,11 +58,15 @@ services:
       com.datadoghq.ad.init_configs: '[{}]'
       com.datadoghq.ad.instances: '[{"nginx_status_url": "http://%%host%%:%%port%%/nginx_status"}]'
       com.datadoghq.ad.logs: '[{"source": "nginx", "service": "webapp"}]'
+    volumes:
+      - ./nginx/status.conf:/etc/nginx/conf.d/status.conf
+
   datadog:
     container_name: ddagent
     image: datadog/agent:latest
+    env_file:
+      - apikey.env
     environment:
-      - DD_API_KEY=7a949afa3aecc29828c96b90e0fa440f
       - DD_LOGS_ENABLED=true
       - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
       - DD_AC_EXCLUDE="name:datadog"
